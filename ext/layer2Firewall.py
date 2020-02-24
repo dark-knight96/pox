@@ -14,10 +14,9 @@ class layer2Firewall(EventMixin):
         log.debug("Firewall rules loaded")
         self.listenTo(core.openflow)
         log.debug("Starting layer2Firewall")
-        log.debud(self.rules)
 
     def _handle_ConnectionUp(self, event):
-        for rule in self.rules():
+        for rule in self.rules:
             matchInstance = of.ofp_match()
             matchInstance.dl_src = EthAddr(rule[0])
             matchInstance.dl_dst = EthAddr(rule[1])
@@ -27,6 +26,11 @@ class layer2Firewall(EventMixin):
             flowMod.match = matchInstance
             event.connection.send(flowMod)
 
+    def apihandler(self):
+        """
+        Update rule logic goes here.
+        :return:
+        """
 class utilMethods():
     def __init__(self):
         """
