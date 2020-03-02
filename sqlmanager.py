@@ -1,6 +1,5 @@
 from mysql import connector
 import enum
-
 class Concatnator(enum.Enum):
     AND = 1
     OR = 2
@@ -10,29 +9,27 @@ connection= connector.connect(host="localhost", user="root", database="Network_s
 def getCusror():
     return connection.cursor(buffered=True)
 
-def checkForTypeErrors(data):
-    if type(data) == list:
-        for val in data:
-            for d in val.keys():
-                v = val[d]
-                if type(v) == list:
-                    for li in v:
-                        if type(li) != str:
-                            return -1
-                elif type(v) != str:
-                    return -1
-    else:
-        for d in data.keys():
-            val = data[d]
-            if type(val) != str:
-                return -1
-    return 1
+# def checkForTypeErrors(data):
+#     if type(data) == list:
+#         for val in data:
+#             for d in val.keys():
+#                 v = val[d]
+#                 print "v"
+#                 print type(v)
+#                 if type(v) == list:
+#                     for li in v:
+#                         if type(li) != str:
+#                             return -1
+#                 elif type(v) != str:
+#                     return -1
+#     else:
+#         for d in data.keys():
+#             val = data[d]
+#             if type(val) != str:
+#                 return -1
+#     return 1
 
 def insertRecord(tableName, data):
-    checkVal = checkForTypeErrors(data)
-    if checkVal == -1:
-        print "Values should be of type str"
-        return -1
     try:
         insertString = "INSERT INTO " + tableName + " ("
         for key in data.keys():
@@ -65,10 +62,10 @@ def insertRecord(tableName, data):
         return -1
 
 def fetchAllRecords(tableName, concatnator = None, whereValues = None):
+    print tableName
     try:
         if whereValues != None:
             whereString = constructWhere(whereValues, concatnator)
-            print whereString
             sqlquery = "SELECT * FROM " + tableName + " " + whereString + ";"
         else:
             sqlquery = "SELECT * FROM " + tableName + ";"
@@ -113,24 +110,23 @@ def updateRecord(tableName, setData, whereValues, concatnator):
 
     for key in setData.keys():
         if setData.keys().index(key) == len(setData.keys()) - 1:
-            updateString = updateString + key + "='" + setData[key] + "' "
+            updateString = updateString + str(key) + "='" + str(setData[key]) + "' "
         else:
-            updateString = updateString + key + "='" + setData[key] + "', "
+            updateString = updateString + str(key) + "='" + str(setData[key]) + "', "
     updateString = updateString + whereString + ";"
     print "Update query is"
     print updateString
 
     try:
-        cursor = queryExecutor(updateString)
-        if type(cursor) == tuple:
-            raise(Exception(cursor[1]))
+        result = queryExecutor(updateString)
+        if type(result) == tuple:
+            raise(Exception(result[1]))
         else:
-            if cursor.rowcount == 1:
+            if result.rowcount == 1:
                 print "Record has been successfully updated."
-                return 1
-            elif cursor.rowcount > 1:
+            elif result.rowcount > 1:
                 print "More than one record has been updated."
-                return 1
+            return result.rowcount
     except Exception as e:
         print e
         print "Record update failed."
@@ -158,6 +154,8 @@ def deleteRecord(tableName, whereValues, concatnator):
             if result[0].rowCount == 1:
                 print "Record deleted successfully"
                 return 1
+    else:
+        return result.rowcount
 
 def queryExecutor(sqlStatement):
     try:
@@ -173,42 +171,43 @@ def constructWhere(data, concatnator):
     :param values: dictionary of key and value pairs
     :return: where string add-on for sql statement
     """
-    if checkForTypeErrors(data) == -1:
-        return -1
+    # if checkForTypeErrors(data) == -1:
+    #     print "Hello"
+    #     return -1
+    # else:
+    #
+    whereStatement = "WHERE "
+    concat = ""
+    if concatnator == Concatnator.AND:
+        concatString = "AND"
     else:
-        whereStatement = "WHERE "
-        concat = ""
-        if concatnator == Concatnator.AND:
-            concatString = "AND"
-        else:
-            concatString = "OR"
-        for val in data:
-            for key in val.keys():
-                value = val[key]
-                # print value
-                # print type(value)
-                if type(value) == list:
-                    tempString = ""
-                    minconcat = "OR"
-                    for ml in value:
-                        if value.index(ml) == len(value) - 1:
-                            tempString = tempString + " " + key + "='" + ml + "'"
-                        else:
-                            tempString = tempString + " " + key + "='" + ml + "'" + minconcat + " "
-                    print tempString
-                    whereStatement = whereStatement + " " + tempString
-                else:
-                    v = str(val[key])
-                    whereStatement = whereStatement + " " + str(key) + "='" + v + "'"
-                if concatnator != None and data.index(val) != len(data) - 1:
-                    whereStatement = whereStatement + " " + concatString + " "
-    print "The generated where statement is:" + whereStatement
-    return whereStatement
+        concatString = "OR"
+    for val in data:
+        for key in val.keys():
+            value = val[key]
+            print value
+            print type(value)
+            if type(value) == list:
+                tempString = ""
+                minconcat = "OR"
+                for ml in value:
+                    if value.index(ml) == len(value) - 1:
+                        tempString = tempString + " " + str(key) + "='" + str(ml) + "'"
+                    else:
+                        tempString = tempString + " " + str(key) + "='" + str(ml) + "'" + minconcat + " "
+                print tempString
+                whereStatement = whereStatement + " " + tempString
+            else:
+                v = str(val[key])
+                whereStatement = whereStatement + " " + str(key) + "='" + v + "'"
+            if concatnator != None and data.index(val) != len(data) - 1:
+                whereStatement = whereStatement + " " + concatString + " "
+            print "The generated where statement is:" + whereStatement
+            return whereStatement
 
 if __name__ == "__main__":
-    # print fetchAllRecords("layer2", concatnator=Concatnator.AND,whereValues=[{"SWITCH_ID":["1", "2"]}, {"SOURCE_ADDRESS":"00:00:00:01"}])
-    #print deleteRecord("layer2", concatnator=None, whereValues=[{"DEST_ADDRESS":"00:00:00:00:00:03"}],)
-    # print insertRecord("layer2", data={"RULE_ID": "3", "SOURCE_ADDRESS": "00:00:00:00:00:01",
-    #                                    "DEST_ADDRESS": "00:00:00:00:00:02"})
-    print fetchAllRecords("layer2", concatnator=None, whereValues= None)
+    print fetchAllRecords("layer2", concatnator=Concatnator.AND,whereValues=[{"RULE_ID":["1", "2"]}])
+    # #print deleteRecord("layer2", concatnator=None, whereValues=[{"DEST_ADDRESS":"00:00:00:00:00:03"}],)
+    # # print insertRecord("layer2", data={"RULE_ID": "3", "SOURCE_ADDRESS": "00:00:00:00:00:01",
+    # #                                    "DEST_ADDRESS": "00:00:00:00:00:02"})
 
