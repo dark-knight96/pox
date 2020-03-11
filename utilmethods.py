@@ -27,3 +27,9 @@ def generateErrorStringFromMeta(field):
         return "Layer information is missing"
     elif field == constants.FIELDS:
         return "Fields list for query construction is missing"
+
+def extractAddress(rule):
+    addr = []
+    for key in rule.keys():
+        addr.append(str(rule[key]))
+    return addr
