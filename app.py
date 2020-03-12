@@ -5,13 +5,17 @@ import sqlmanager as sql
 import constants as con
 from flask import request
 from sqlmanager import Concatnator
+from Sender import sendToServer
 
 app = Flask(__name__)
 
 @app.route("/")
 def index():
     result = {"data":"Hello world"}
-    return make_response(jsonify(result), 200)
+    if sendToServer(result) == 1:
+        return make_response(jsonify(result), 200)
+    else:
+        return make_response(jsonify(({"error": "Data cannot be sent to the server"})), 400)
 
 @app.route("/fetchAllRules", methods=['POST'])
 def fetchAllRules():
