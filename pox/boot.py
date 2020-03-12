@@ -51,6 +51,7 @@ import time
 import inspect
 import types
 import threading
+from pox import listener
 
 import pox.core
 core = None
@@ -532,6 +533,9 @@ def boot (argv = None):
     if _do_launch(argv):
       _post_startup()
       core.goUp()
+      t1 = threading.Thread(target=listener.initialize  )
+      t1.daemon = True
+      t1.start()
     else:
       #return
       quiet = True
