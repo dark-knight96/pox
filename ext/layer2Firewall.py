@@ -6,16 +6,21 @@ from pox.lib.revent import *
 import pox.openflow.libopenflow_01 as of
 from pox.lib.addresses import EthAddr
 
-log = core.getLogger()
+
+if core != None:
+    log = core.getLogger()
 
 class layer2Firewall(EventMixin):
     def __init__(self):
         self.rules = utilMethods.getOnlyRules(utilMethods.getFireWallRules())
-        log.debug("Firewall rules loaded")
+        print("Firewall rules loaded")
         self.listenTo(core.openflow)
-        log.debug("Starting layer2Firewall")
+        print("Starting layer2Firewall")
 
+    def updateRules(self):
+        self.rules = utilMethods.getOnlyRules(utilMethods.getFireWallRules())
     def _handle_ConnectionUp(self, event):
+        self.updateRules()
         for rule in self.rules:
             matchInstance = of.ofp_match()
             matchInstance.dl_src = EthAddr(rule[0])
@@ -25,13 +30,17 @@ class layer2Firewall(EventMixin):
             flowMod = of.ofp_flow_mod()
             flowMod.match = matchInstance
             event.connection.send(flowMod)
+        from pox.listener import updateBootCore #deferring circular imports
+        updateBootCore()
 
-    def apihandler(self):
-        """
-        Update rule logic goes here.
-        :return:
-        """
 class utilMethods():
+    @staticmethod
+    def constructmatchStructure(rule):
+        match = of.ofp_match()
+        match.dl_src = EthAddr(rule[0])
+        match.dl_dst = EthAddr(rule[1])
+
+        return match
     def __init__(self):
         """
         Empty constructor
@@ -56,9 +65,6 @@ class utilMethods():
             temp.append(str(rule[2]))
             finalRules.append(temp)
         return finalRules
-    @staticmethod
-    def getCore():
-        return core
 
 def launch():
     core.registerNew(layer2Firewall)
