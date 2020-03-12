@@ -1,12 +1,24 @@
 import socket
 import pickle
 from ext import layer2Firewall
+import constants
+from sqlmanager import operationType
+import pox.openflow.libopenflow_01 as of
+import utilmethods
+import pox.boot
+
+bootCore = None
 
 #TODO implement api handler here if connection object persists
+#TODO remove debug statements
 
 def initialize():
-    from boot import core
-    print core.openflow.connections
+    global bootCore
+    if bootCore == None:
+        updateBootCore()
+    print "initialize bootcore"
+    print bootCore
+    print bootCore.openflow.connections
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.bind(("localhost", 8000))
     try:
@@ -16,8 +28,10 @@ def initialize():
             clientConnection, addr = server.accept()
             print "Client Connected: " + str(addr)
             data = clientConnection.recv(4096)
-            formattedData = pickle.load(data)
-            clientConnection.sendall(pickle.dumps(getSuccessReponse()))
+            if data != None:
+                formattedData = pickle.loads(data)
+                apihandler(formattedData)
+                clientConnection.sendall(pickle.dumps(getSuccessReponse()))
     except KeyboardInterrupt:
         server.close()
     except Exception as e:
@@ -28,10 +42,34 @@ def getSuccessReponse():
     return {"status":1}
 
 def apihandler(data):
-    # Skeleton for apihandler
     #TODO check if the core object holds all the connections
-    getCore = layer2Firewall.utilMethods.getCore()
+    oType = data[constants.OTYPE]
+    matchInstance = layer2Firewall.utilMethods.constructmatchStructure(utilmethods.extractAddress(data))
+    if oType == operationType[constants.INSERT]:
+        for connection in bootCore.openflow.connections:
+            msg = of.ofp_flow_mod()
+            msg.match = matchInstance
+            msg.command = of.OFPFC_ADD
+            connection.send(msg)
+    elif oType == operationType[constants.DELETE]:
+        for connection in bootCore.openflow.connections:
+            msg = of.ofp_flow_mod()
+            msg.match = matchInstance
+            msg.command = of.OFPFC_DELETE
+            connection.send(msg)
+    elif oType == operationType[constants.UPDATE]:
+        for connection in bootCore.openflow.connections:
+            # Delete the existing rule identified by the source and the destination address
+            msg = of.ofp_flow_mod()
+            msg.match = matchInstance
+            msg.command = of.OFPFC_DELETE
+            connection.send(msg)
     return data
+
+def updateBootCore():
+    print "Updating boot core"
+    global bootCore
+    bootCore = pox.boot.core
 
 
 
