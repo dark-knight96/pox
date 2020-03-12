@@ -6,6 +6,9 @@ import constants as con
 from flask import request
 from sqlmanager import Concatnator
 from Sender import sendToServer
+import constants
+from sqlmanager import operationType
+import utilmethods
 
 app = Flask(__name__)
 
@@ -51,6 +54,9 @@ def addRule():
             if result ==-1:
                 return make_response(jsonify({"error": "New Rule cannot be inserted"}), 500)
             elif result ==1:
+                fields = utilmethods.unformattedDict(request.json.get(con.FIELDS))
+                fields[constants.OTYPE] = operationType[constants.INSERT]
+                sendToServer(fields)
                 return make_response(jsonify({"message": "Rule inserted successfully"}), 200)
 
 @app.route("/deleteRule", methods= ["POST"])
