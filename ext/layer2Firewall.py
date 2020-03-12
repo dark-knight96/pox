@@ -56,6 +56,9 @@ class utilMethods():
             temp.append(str(rule[2]))
             finalRules.append(temp)
         return finalRules
+    @staticmethod
+    def getCore():
+        return core
 
 def launch():
     core.registerNew(layer2Firewall)
