@@ -4,11 +4,12 @@ class Concatnator(enum.Enum):
     AND = 1
     OR = 2
 
-class operationType(enum.Enum):
-    #fetch can be directly done from the database
-    INSERT =1
-    UPDATE =2
-    DELETE = 3
+#As enum to int is not possible in python 2.7
+operationType = {
+    "INSERT":1,
+    "UPDATE":2,
+    "DELETE":3
+}
 
 connection= connector.connect(host="localhost", user="root", database="Network_security")
 

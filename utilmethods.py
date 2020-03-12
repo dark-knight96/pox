@@ -22,6 +22,12 @@ def checkForFields(request, fieldList):
             return field
     return 1
 
+def unformattedDict(data):
+    temp = {}
+    for key in data.keys():
+        temp[str(key)] = str(data[key])
+    return temp
+
 def generateErrorStringFromMeta(field):
     if field == constants.LAYER_KEY:
         return "Layer information is missing"
@@ -31,5 +37,7 @@ def generateErrorStringFromMeta(field):
 def extractAddress(rule):
     addr = []
     for key in rule.keys():
-        addr.append(str(rule[key]))
+        if key != constants.OTYPE:
+            addr.append(str(rule[key]))
     return addr
+
