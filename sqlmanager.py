@@ -11,7 +11,7 @@ operationType = {
     "DELETE":3
 }
 
-connection= connector.connect(host="localhost", user="root", database="Network_security")
+connection= connector.connect(host="localhost", user="root", database="Network_security", password="root")
 
 def getCusror():
     return connection.cursor(buffered=True)
