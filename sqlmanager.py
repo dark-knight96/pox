@@ -77,7 +77,6 @@ def fetchAllRecords(tableName, concatnator = None, whereValues = None):
         else:
             sqlquery = "SELECT * FROM " + tableName + ";"
         print sqlquery
-        # cursor.execute(sqlquery)
         cursor = queryExecutor(sqlquery)
         if type(cursor) == tuple:
             raise Exception(cursor[1])
@@ -178,11 +177,6 @@ def constructWhere(data, concatnator):
     :param values: dictionary of key and value pairs
     :return: where string add-on for sql statement
     """
-    # if checkForTypeErrors(data) == -1:
-    #     print "Hello"
-    #     return -1
-    # else:
-    #
     whereStatement = "WHERE "
     concat = ""
     if concatnator == Concatnator.AND:
@@ -213,7 +207,12 @@ def constructWhere(data, concatnator):
             return whereStatement
 
 if __name__ == "__main__":
-    print fetchAllRecords("layer2", concatnator=Concatnator.AND,whereValues=[{"RULE_ID":["1", "2"]}])
+    records = fetchAllRecords("layer2", concatnator=None ,whereValues= None)
+    print records
+
+
+
+
     # #print deleteRecord("layer2", concatnator=None, whereValues=[{"DEST_ADDRESS":"00:00:00:00:00:03"}],)
     # # print insertRecord("layer2", data={"RULE_ID": "3", "SOURCE_ADDRESS": "00:00:00:00:00:01",
     # #                                    "DEST_ADDRESS": "00:00:00:00:00:02"})

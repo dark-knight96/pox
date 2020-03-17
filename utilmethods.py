@@ -37,7 +37,7 @@ def generateErrorStringFromMeta(field):
 def extractAddress(rule):
     addr = []
     for key in rule.keys():
-        if key != constants.OTYPE:
+        if key != constants.OTYPE and key != constants.PROTO and key != constants.PORT:
             addr.append(str(rule[key]))
     return addr
 

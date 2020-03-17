@@ -44,7 +44,7 @@ def getSuccessReponse():
 def apihandler(data):
     #TODO check if the core object holds all the connections
     oType = data[constants.OTYPE]
-    matchInstance = layer2Firewall.utilMethods.constructmatchStructure(utilmethods.extractAddress(data))
+    matchInstance = layer2Firewall.utilMethods.constructmatchStructure(utilmethods.extractAddress(data), data[constants.PROTO], data[constants.PORT])
     if oType == operationType[constants.INSERT]:
         for connection in bootCore.openflow.connections:
             msg = of.ofp_flow_mod()

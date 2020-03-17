@@ -7,3 +7,10 @@ OTYPE= "oType"
 INSERT = "INSERT"
 UPDATE = "UPDATE"
 DELETE = "DELETE"
+SRC_PORT = "srcport"
+DEST_PORT = "destport"
+PROTO="protocol"
+PORT = "ports"
+protoCodes = {"IPV4": 0x800, "TCP": 6}
+
+
