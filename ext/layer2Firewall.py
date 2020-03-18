@@ -28,17 +28,13 @@ class layer2Firewall(EventMixin):
             matchInstance.dl_dst = EthAddr(rule[1])
 
             #Setting port blocks using TCP or UDP
-            if rule[2] == str(None) and rule[3] == str(None) and rule[4] == str(None):
-                pass
-            elif rule[4] == str(None):
-                pass
-            else:
+            if str(rule[4]) != str(None):
                 matchInstance.dl_type = cn.protoCodes["IPV4"]
                 matchInstance.nw_proto = cn.protoCodes[rule[4]]
-                if rule[2] != None:
-                    matchInstance.dl_src = int(rule[2])
-                elif rule[3] != None:
-                    matchInstance.dl_dst = int(rule[3])
+                if str(rule[2]) != str(None):
+                    matchInstance.tp_src = int(rule[2])
+                elif str(rule[3]) != str(None):
+                    matchInstance.tp_dst = int(rule[3])
             #Sending new flow mod message
             flowMod = of.ofp_flow_mod()
             flowMod.match = matchInstance
@@ -58,8 +54,10 @@ class utilMethods():
             match.dl_type = 0x800   #setting Ether packet type as IPV4
             if protocol == "TCP" or protocol == "UDP":
                 match.nw_proto = cn.protoCodes[protocol]
-                match.tp_src = int(port[cn.SRC_PORT])
-                match.tp_dst = int(port[cn.DEST_PORT])
+                if port[cn.SRC_PORT] != str(None):
+                    match.tp_src = int(port[cn.SRC_PORT])
+                if port[cn.DEST_PORT] != str(None):
+                    match.tp_dst = int(port[cn.DEST_PORT])
         return match
     def __init__(self):
         """

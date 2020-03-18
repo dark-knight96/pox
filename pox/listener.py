@@ -9,7 +9,6 @@ import pox.boot
 
 bootCore = None
 
-#TODO implement api handler here if connection object persists
 #TODO remove debug statements
 
 def initialize():
@@ -44,7 +43,10 @@ def getSuccessReponse():
 def apihandler(data):
     #TODO check if the core object holds all the connections
     oType = data[constants.OTYPE]
-    matchInstance = layer2Firewall.utilMethods.constructmatchStructure(utilmethods.extractAddress(data), data[constants.PROTO], data[constants.PORT])
+
+    matchInstance = layer2Firewall.utilMethods.constructmatchStructure(utilmethods.extractAddress(data), protocol=data[constants.PROTO],
+                                                                       port={constants.SRC_PORT: data[constants.SRC_PORT], constants.DEST_PORT: data[constants.DEST_PORT]})
+
     if oType == operationType[constants.INSERT]:
         for connection in bootCore.openflow.connections:
             msg = of.ofp_flow_mod()
@@ -61,8 +63,8 @@ def apihandler(data):
         for connection in bootCore.openflow.connections:
             # Delete the existing rule identified by the source and the destination address
             msg = of.ofp_flow_mod()
-            msg.match = matchInstance
-            msg.command = of.OFPFC_DELETE
+            msg.match= matchInstance
+            msg.command = of.OFPFC_ADD
             connection.send(msg)
     return data
 

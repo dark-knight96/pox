@@ -39,7 +39,7 @@ def fetchAllRules():
         if records == -1:
             return make_response(jsonify({"error": "Data cannot be retrieved from the database"}), 500)
         else:
-            return make_response(jsonify(um.convertToDict(records, con.layer2)), 200)
+            return make_response(jsonify(um.convertToDict(records, con.tableFields.get(tableName))), 200)
 
 
 @app.route("/addRule", methods = ["POST"])
@@ -71,14 +71,22 @@ def deleteRule():
             whereValues = None
             if request.json.get(con.WHERE_REQ_KEY):
                 whereValues = request.json.get(con.WHERE_REQ_KEY)
+            matchRecord = sql.fetchFirstRow(um.getTable(request.json.get(constants.LAYER_KEY)), whereValues = whereValues, concatnator= Concatnator.AND)
+            if matchRecord == None:
+                return make_response(jsonify({"message": "No matching record found"}), 500)
+
             result = sql.deleteRecord(um.getTable(request.json.get(con.LAYER_KEY)), whereValues = whereValues, concatnator=Concatnator.AND)
             if result == 1:
+                fields = utilmethods.getUnformattedDictFromTuple(matchRecord, constants.tableFields.get(um.getTable(request.json.get(constants.LAYER_KEY))))
+                fields[constants.OTYPE] = operationType[constants.DELETE]
+                sendToServer(fields)
                 return make_response(jsonify({"message": "Record has been successfully deleted."}), 200)
             else:
                 return make_response(jsonify({"message": "Record cannot be deleted."}), 500)
 
 @app.route("/updateRule", methods = ["POST"])
 def updateRule():
+    #Update has to be done using the primary key which set in the where value
     if not request.json:
         return make_response(jsonify({"error": "Request structure needs to be a json."}))
     else:
@@ -91,8 +99,21 @@ def updateRule():
                 whereValues = request.json.get(con.WHERE_REQ_KEY)
             layer = request.json.get(con.LAYER_KEY)
             setValues = request.json.get(con.FIELDS)
+
+            matchedRecord = sql.fetchFirstRow(um.getTable(layer), whereValues=whereValues, concatnator=Concatnator.AND)
+            if matchedRecord == None:
+                return make_response(jsonify({"message": "No matched record is found"}))
             result = sql.updateRecord(um.getTable(layer), setData=setValues, whereValues= whereValues, concatnator=Concatnator.AND)
             if result >= 1:
+                deleteRule = utilmethods.getUnformattedDictFromTuple(matchedRecord, constants.tableFields.get(
+                    um.getTable(request.json.get(constants.LAYER_KEY))))
+                deleteRule[constants.OTYPE] = operationType[constants.DELETE]
+                sendToServer(deleteRule)
+
+                fields = utilmethods.unformattedDict(request.json.get(con.FIELDS))
+                fields[constants.OTYPE] = operationType[constants.UPDATE]
+                sendToServer(fields)
+
                 return make_response(jsonify({"message": str(result) + " record has been updated" if result ==1 else " records have been updated."}), 200)
             else:
                 return make_response(jsonify({"error": "Record cannot be updated."}), 500)

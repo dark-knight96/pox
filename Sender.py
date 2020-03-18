@@ -17,8 +17,3 @@ def sendToServer(data):
             return -1
     except:
         client.close()
-
-
-
-
-

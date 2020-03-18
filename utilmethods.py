@@ -8,8 +8,6 @@ def convertToDict(data, keys):
             keyIndex = keys.index(key)
             temp[key] = str(record[keyIndex])
         result.append(temp)
-    # print "The processed data is:"
-    # print result
     return result
 
 def getTable(layer):
@@ -28,6 +26,17 @@ def unformattedDict(data):
         temp[str(key)] = str(data[key])
     return temp
 
+def getUnformattedDictFromTuple(data, fieldList):
+    if len(data) != len(fieldList):
+        return -1
+    else:
+        temp = {}
+        i = 0
+        while i< len(data):
+            temp[fieldList[i]] = str(data[i])
+            i = i +1
+        return temp
+
 def generateErrorStringFromMeta(field):
     if field == constants.LAYER_KEY:
         return "Layer information is missing"
@@ -36,8 +45,8 @@ def generateErrorStringFromMeta(field):
 
 def extractAddress(rule):
     addr = []
-    for key in rule.keys():
-        if key != constants.OTYPE and key != constants.PROTO and key != constants.PORT:
-            addr.append(str(rule[key]))
+    addr.append(rule.get(constants.SOURCE_ADDRESS))
+    addr.append(rule.get(constants.DEST_ADDRESS))
     return addr
+
 
