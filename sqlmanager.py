@@ -1,5 +1,7 @@
 from mysql import connector
 import enum
+import mysqlInfo as sqlInfo
+
 class Concatnator(enum.Enum):
     AND = 1
     OR = 2
@@ -11,7 +13,7 @@ operationType = {
     "DELETE":3
 }
 
-connection= connector.connect(host="localhost", user="root", database="Network_security", password="root")
+connection= connector.connect(host=sqlInfo.host, user=sqlInfo.user, database=sqlInfo.database)
 
 def getCusror():
     return connection.cursor(buffered=True)
@@ -207,12 +209,7 @@ def constructWhere(data, concatnator):
             return whereStatement
 
 if __name__ == "__main__":
-    records = fetchAllRecords("layer2", concatnator=None ,whereValues= None)
-    print records
-
-
-
-
+    print fetchAllRecords("layer2", concatnator=None, whereValues= None)
     # #print deleteRecord("layer2", concatnator=None, whereValues=[{"DEST_ADDRESS":"00:00:00:00:00:03"}],)
     # # print insertRecord("layer2", data={"RULE_ID": "3", "SOURCE_ADDRESS": "00:00:00:00:00:01",
     # #                                    "DEST_ADDRESS": "00:00:00:00:00:02"})
